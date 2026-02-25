@@ -1,11 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional
 from datetime import date
 from motor.motor_asyncio import AsyncIOMotorClient
 from bson import ObjectId
 import os
+import re
 from contextlib import asynccontextmanager
 
 MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
@@ -35,8 +36,16 @@ app.add_middleware(
 class Employee(BaseModel):
     employee_id: str = Field(..., min_length=1)
     full_name: str = Field(..., min_length=1)
-    email: EmailStr
+    email: str = Field(..., min_length=1)
     department: str = Field(..., min_length=1)
+    
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v):
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_regex, v):
+            raise ValueError('Invalid email format')
+        return v
 
 class EmployeeResponse(Employee):
     id: str
