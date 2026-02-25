@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, validator
 from typing import List, Optional
 from datetime import date
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -39,8 +39,7 @@ class Employee(BaseModel):
     email: str = Field(..., min_length=1)
     department: str = Field(..., min_length=1)
     
-    @field_validator('email')
-    @classmethod
+    @validator('email')
     def validate_email(cls, v):
         email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if not re.match(email_regex, v):
