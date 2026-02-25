@@ -62,6 +62,15 @@ class AttendanceResponse(AttendanceRecord):
 async def root():
     return {"message": "HRMS Lite API", "status": "running"}
 
+
+@app.get("/api/health")
+async def health():
+    try:
+        await db.command("ping")
+        return {"status": "ok", "database": "connected"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database not reachable: {str(e)}")
+
 @app.post("/api/employees", response_model=EmployeeResponse, status_code=201)
 async def create_employee(employee: Employee):
     existing = await db.employees.find_one({"employee_id": employee.employee_id})
@@ -79,11 +88,14 @@ async def create_employee(employee: Employee):
 
 @app.get("/api/employees", response_model=List[EmployeeResponse])
 async def get_employees():
-    employees = []
-    async for emp in db.employees.find():
-        emp["id"] = str(emp["_id"])
-        employees.append(emp)
-    return employees
+    try:
+        employees = []
+        async for emp in db.employees.find():
+            emp["id"] = str(emp["_id"])
+            employees.append(emp)
+        return employees
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 @app.delete("/api/employees/{employee_id}", status_code=204)
 async def delete_employee(employee_id: str):
