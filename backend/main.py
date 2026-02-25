@@ -52,7 +52,7 @@ class EmployeeResponse(Employee):
 class AttendanceRecord(BaseModel):
     employee_id: str = Field(..., min_length=1)
     date: date
-    status: str = Field(..., pattern="^(Present|Absent)$")
+    status: str = Field(..., regex="^(Present|Absent)$")
 
 class AttendanceResponse(AttendanceRecord):
     id: str
